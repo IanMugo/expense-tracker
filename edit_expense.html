@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Edit Expense</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Expense</h2>
+        <form action="edit_expense_process.php" method="post">
+            <!-- Hidden input to store the expense ID -->
+            <input type="hidden" id="expense_id" name="expense_id" value="">
+
+            <div class="form-group">
+                <label for="expense_name">Expense Name</label>
+                <input type="text" id="expense_name" name="expense_name" required>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="food">Food</option>
+                    <option value="transportation">Transportation</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="utilities">Utilities</option>
+                    <option value="others">Others</option>
+                </select>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4"></textarea>
+            </div>
+            <br>
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+    
+    <script>
+        // This script is used to populate the form with existing expense data
+        // Assuming you have the expense data in a JavaScript object called `expense`
+        const expense = {
+            id: 1,
+            name: "Groceries",
+            amount: 50.00,
+            date: "2023-07-05",
+            category: "food",
+            notes: "Bought vegetables and fruits"
+        };
+
+        document.getElementById('expense_id').value = expense.id;
+        document.getElementById('expense_name').value = expense.name;
+        document.getElementById('amount').value = expense.amount;
+        document.getElementById('date').value = expense.date;
+        document.getElementById('category').value = expense.category;
+        document.getElementById('notes').value = expense.notes;
+    </script>
+</body>
+</html>
