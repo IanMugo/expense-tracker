@@ -181,3 +181,33 @@ nav ul li a:hover {
         padding: 8px;
     }
 }
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input, button {
+    margin-bottom: 10px;
+    padding: 5px;
+    font-size: 16px;
+}
+
+#displayText {
+    margin-top: 20px;
+    font-size: 18px;
+    display: block;
+}
+
+canvas {
+    margin-top: 20px;
+}

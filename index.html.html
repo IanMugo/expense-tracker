@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker - Home</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -23,6 +24,24 @@
             </ul>
         </nav>
     </div>
+        <!-- Input field for user to enter text -->
+        <label for="userInput">Enter some text:</label>
+        <input type="text" id="userInput" name="userInput">
+        
+        <!-- Button to submit the input -->
+        <button id="submitButton">Submit</button>
+        
+        <!-- Paragraph to display the user's input -->
+        <p id="displayText">Your input will be displayed here.</p>
+    
+        <!-- Button to toggle the visibility of the paragraph -->
+        <button id="toggleButton">Toggle Display</button>
+
+        <!-- Canvas element for Chart.js -->
+        <canvas id="myChart" width="400" height="200"></canvas>
+
+        <!-- JavaScript file -->
+        <script src="scripts.js"></script>
 </body>
 </html>
 
