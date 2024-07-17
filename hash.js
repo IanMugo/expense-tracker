@@ -1,15 +1,14 @@
 const bcrypt = require('bcryptjs');
 
-const users = [
-    { username: 'user1', password: 'password1' },
-    { username: 'user2', password: 'password2' }
-];
+// Function to hash a password
+async function hashPassword(password) {
+  try {
+    const salt = await bcrypt.genSalt(10); // Generate salt
+    const hashedPassword = await bcrypt.hash(password, salt); // Hash the password
+    return hashedPassword;
+  } catch (error) {
+    throw new Error('Password hashing failed');
+  }
+}
 
-users.forEach(user => {
-    bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(user.password, salt, (err, hash) => {
-            if (err) throw err;
-            console.log(`Username: ${user.username}, Password: ${hash}`);
-        });
-    });
-});
+module.exports = { hashPassword };
