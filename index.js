@@ -3,9 +3,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // For generating unique IDs
+const path = require('path'); // Ensure path module is required
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Secret key for JWT
 
 // Mock user data
@@ -28,9 +29,12 @@ let expenses = [];
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Basic route
 app.get('/', (req, res) => {
-    res.send('Hello, world!');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Authentication endpoint
@@ -73,8 +77,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-
-
+// Input validation middleware
 const { body, validationResult } = require('express-validator');
 
 // Example validation middleware
@@ -94,21 +97,6 @@ const validateExpenseInput = [
 
 // Apply the middleware where needed
 app.post('/api/expenses', validateExpenseInput, authenticateToken, (req, res) => {
-    // Handle adding expense logic
-});
-
-
-
-// Retrieve all expenses for a user
-app.get('/api/expenses', authenticateToken, (req, res) => {
-    const userId = req.user.userId;
-
-    const userExpenses = expenses.filter(expense => expense.userId === userId);
-    res.status(200).json(userExpenses);
-});
-
-// Add a new expense for a user
-app.post('/api/expenses', authenticateToken, (req, res) => {
     const { userId, description, amount, date } = req.body;
 
     if (!userId || !description || !amount || !date) {
@@ -130,6 +118,14 @@ app.post('/api/expenses', authenticateToken, (req, res) => {
 
     expenses.push(newExpense);
     res.status(201).json(newExpense);
+});
+
+// Retrieve all expenses for a user
+app.get('/api/expenses', authenticateToken, (req, res) => {
+    const userId = req.user.userId;
+
+    const userExpenses = expenses.filter(expense => expense.userId === userId);
+    res.status(200).json(userExpenses);
 });
 
 // Update an existing expense
@@ -193,7 +189,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-
 
 

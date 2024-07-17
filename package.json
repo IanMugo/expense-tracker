@@ -2,7 +2,7 @@
   "name": "expense-tracker",
   "version": "1.0.0",
   "description": "expense tracker project",
-  "main": "script.js",
+  "main": "scripts.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
