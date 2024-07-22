@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const mysql = require('mysql'); // Add MySQL package
+const mysql = require('mysql2'); // Add MySQL package
 const { hashPassword } = require('./hash'); // Import hash function
 
 const app = express();
