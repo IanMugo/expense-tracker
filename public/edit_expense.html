@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h2>Edit Expense</h2>
-        <form action="edit_expense_process.php" method="post">
+        <form id="editExpenseForm">
             <!-- Hidden input to store the expense ID -->
             <input type="hidden" id="expense_id" name="expense_id" value="">
 
@@ -47,25 +47,7 @@
             <button type="submit">Save Changes</button>
         </form>
     </div>
-    
-    <script>
-        // This script is used to populate the form with existing expense data
-        // Assuming you have the expense data in a JavaScript object called `expense`
-        const expense = {
-            id: 1,
-            name: "Groceries",
-            amount: 50.00,
-            date: "2023-07-05",
-            category: "food",
-            notes: "Bought vegetables and fruits"
-        };
-
-        document.getElementById('expense_id').value = expense.id;
-        document.getElementById('expense_name').value = expense.name;
-        document.getElementById('amount').value = expense.amount;
-        document.getElementById('date').value = expense.date;
-        document.getElementById('category').value = expense.category;
-        document.getElementById('notes').value = expense.notes;
-    </script>
+        <!-- JavaScript file -->
+        <script src="scripts.js"></script>
 </body>
 </html>

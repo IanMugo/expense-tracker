@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h2>Add Expense</h2>
-        <form action="add_expense_process.php" method="post">
+        <form id="expenseForm">
             <div class="form-group">
                 <label for="expense_name">Expense Name</label>
                 <input type="text" id="expense_name" name="expense_name" required>
@@ -44,5 +44,7 @@
             <button type="submit">Add Expense</button>
         </form>
     </div>
+            <!-- JavaScript file -->
+            <script src="scripts.js"></script>
 </body>
 </html>
