@@ -4,8 +4,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const mysql = require('mysql2'); // Add MySQL package
-const { hashPassword } = require('./hash'); // Import hash function
+const mysql = require('mysql2');
+const { check, validationResult } = require('express-validator');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,12 +40,26 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// User representation
+const User = {
+  tableName: 'users',
+  createUser: function(newUser, callback) {
+    db.query('INSERT INTO ' + this.tableName + ' SET ?', newUser, callback);
+  },
+  getUserByEmail: function(email, callback) {
+    db.query('SELECT * FROM ' + this.tableName + ' WHERE email = ?', email, callback);
+  },
+  getUserByUsername: function(username, callback) {
+    db.query('SELECT * FROM ' + this.tableName + ' WHERE username = ?', username, callback);
+  }
+};
+
 // Authentication endpoint
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
 
   // Find user by username
-  db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+  User.getUserByUsername(username, async (err, results) => {
     if (err) {
       return res.status(500).json({ message: 'Database error', error: err });
     }
@@ -67,20 +82,62 @@ app.post('/api/auth/login', async (req, res) => {
   });
 });
 
-// Registration endpoint
-app.post('/api/auth/register', async (req, res) => {
-  const { username, password } = req.body;
+// Registration route
+app.post('/api/register', [
+  check('email').isEmail().withMessage('Please enter a valid email'),
+  check('username').isAlphanumeric().withMessage('Username must be alphanumeric'),
+  check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
 
-  // Hash password
-  const hashedPassword = await hashPassword(password);
+  // Custom validation to check if email and username are unique
+  check('email').custom(async (value) => {
+    return new Promise((resolve, reject) => {
+      User.getUserByEmail(value, (err, results) => {
+        if (err) {
+          return reject(new Error('Database error'));
+        }
+        if (results.length > 0) {
+          return reject(new Error('Email already exists'));
+        }
+        resolve(true);
+      });
+    });
+  }),
+  check('username').custom(async (value) => {
+    return new Promise((resolve, reject) => {
+      User.getUserByUsername(value, (err, results) => {
+        if (err) {
+          return reject(new Error('Database error'));
+        }
+        if (results.length > 0) {
+          return reject(new Error('Username already exists'));
+        }
+        resolve(true);
+      });
+    });
+  })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-  // Save user to database
-  db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
+  const { email, username, password, full_name } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = {
+    email,
+    username,
+    password: hashedPassword,
+    full_name
+  };
+
+  User.createUser(newUser, (error, results) => {
+    if (error) {
+      console.error('Error inserting user: ' + error.message);
+      return res.status(500).json({ error: error.message });
     }
-
-    res.status(201).json({ message: 'User registered successfully' });
+    console.log('Inserted a new user with id ' + results.insertId);
+    res.status(201).json({ message: 'User registered successfully', id: results.insertId });
   });
 });
 
@@ -103,14 +160,11 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Input validation middleware
-const { body, validationResult } = require('express-validator');
-
-// Example validation middleware
 const validateExpenseInput = [
-  body('userId').isInt(),
-  body('description').trim().notEmpty(),
-  body('amount').isFloat(),
-  body('date').isISO8601().toDate(),
+  check('userId').isInt(),
+  check('description').trim().notEmpty(),
+  check('amount').isFloat(),
+  check('date').isISO8601().toDate(),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -128,7 +182,6 @@ app.post('/api/expenses', validateExpenseInput, authenticateToken, (req, res) =>
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  // Ensure userId from token matches the userId in request body
   if (parseInt(userId) !== req.user.userId) {
     return res.status(403).json({ message: 'Forbidden' });
   }
@@ -168,7 +221,6 @@ app.put('/api/expenses/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const { userId, description, amount, date } = req.body;
 
-  // Ensure userId from token matches the userId in request body
   if (parseInt(userId) !== req.user.userId) {
     return res.status(403).json({ message: 'Forbidden' });
   }
@@ -193,7 +245,6 @@ app.delete('/api/expenses/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
   const { userId } = req.body;
 
-  // Ensure userId from token matches the userId in request body
   if (parseInt(userId) !== req.user.userId) {
     return res.status(403).json({ message: 'Forbidden' });
   }

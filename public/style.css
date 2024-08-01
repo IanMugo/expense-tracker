@@ -1,7 +1,7 @@
 /* General styles */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f4f4f9;
+    background-color: #8383dd;
     margin: 0;
     padding: 0;
     display: flex;
@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-    background-color: #ffffff;
+    background-color: #489282;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -26,6 +26,10 @@ h1, h2 {
     text-align: center;
     color: #333333;
     margin: 0 0 20px 0;
+}
+
+h1 {
+    color: #333;
 }
 
 /* Form styles */
@@ -59,7 +63,7 @@ button {
     background-color: #007bff;
     border: none;
     border-radius: 4px;
-    color: white;
+    color: rgb(228, 244, 154);
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
@@ -182,20 +186,7 @@ nav ul li a:hover {
     }
 }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-}
-
-h1 {
-    color: #333;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
+/* Additional styles */
 input, button {
     margin-bottom: 10px;
     padding: 5px;
