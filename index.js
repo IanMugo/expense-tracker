@@ -128,7 +128,6 @@ app.post('/api/register', [
     email,
     username,
     password: hashedPassword,
-    full_name
   };
 
   User.createUser(newUser, (error, results) => {

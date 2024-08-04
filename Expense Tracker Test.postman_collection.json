@@ -1,0 +1,59 @@
+{
+	"info": {
+		"_postman_id": "22aac982-42cd-4678-bd86-7b97da4f3a7c",
+		"name": "Expense Tracker Test",
+		"description": "StartFragment\n\n```\n Test CRUD operations, authentication, and error handling functionalities of the backend API.\n\n ```\n\nEndFragment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37042032"
+	},
+	"item": [
+		{
+			"name": "Create",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Update",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Delete",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Authentication",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "errorhandling",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
