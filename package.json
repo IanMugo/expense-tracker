@@ -4,7 +4,7 @@
   "description": "expense tracker project",
   "main": "scripts.js",
   "scripts": {
-    "test": "mocha --timeout 10000 'test/*.test.js'",
+    "test": "mocha",
      "start": "node index.js"
   },
   "keywords": [],
