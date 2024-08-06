@@ -4,16 +4,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
-const mysql = require('mysql2');
+const mysql2 = require('mysql2');
 const { check, validationResult } = require('express-validator');
-const bodyParser = require('body-parser');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 // Create MySQL connection
-const db = mysql.createConnection({
+const db = mysql2.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'password',
@@ -61,6 +59,7 @@ app.post('/api/auth/login', async (req, res) => {
   // Find user by username
   User.getUserByUsername(username, async (err, results) => {
     if (err) {
+      console.error('Database error:', err);
       return res.status(500).json({ message: 'Database error', error: err });
     }
 
@@ -93,6 +92,7 @@ app.post('/api/register', [
     return new Promise((resolve, reject) => {
       User.getUserByEmail(value, (err, results) => {
         if (err) {
+          console.error('Database error:', err);
           return reject(new Error('Database error'));
         }
         if (results.length > 0) {
@@ -106,6 +106,7 @@ app.post('/api/register', [
     return new Promise((resolve, reject) => {
       User.getUserByUsername(value, (err, results) => {
         if (err) {
+          console.error('Database error:', err);
           return reject(new Error('Database error'));
         }
         if (results.length > 0) {
@@ -133,10 +134,10 @@ app.post('/api/register', [
 
   User.createUser(newUser, (error, results) => {
     if (error) {
-      console.error('Error inserting user: ' + error.message);
+      console.error('Error inserting user:', error.message);
       return res.status(500).json({ error: error.message });
     }
-    console.log('Inserted a new user with id ' + results.insertId);
+    console.log('Inserted a new user with id', results.insertId);
     res.status(201).json({ message: 'User registered successfully', id: results.insertId });
   });
 });
@@ -152,6 +153,7 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
+      console.error('Token verification error:', err);
       return res.status(403).json({ message: 'Forbidden' });
     }
     req.user = user;
@@ -196,6 +198,7 @@ app.post('/api/expenses', validateExpenseInput, authenticateToken, (req, res) =>
 
   db.query('INSERT INTO expenses SET ?', newExpense, (err, result) => {
     if (err) {
+      console.error('Database error:', err);
       return res.status(500).json({ message: 'Database error', error: err });
     }
 
@@ -203,81 +206,9 @@ app.post('/api/expenses', validateExpenseInput, authenticateToken, (req, res) =>
   });
 });
 
-// Retrieve all expenses for a user
-app.get('/api/expenses', authenticateToken, (req, res) => {
-  const userId = req.user.userId;
-
-  db.query('SELECT * FROM expenses WHERE userId = ?', [userId], (err, results) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-
-    res.status(200).json(results);
-  });
-});
-
-// Update an existing expense
-app.put('/api/expenses/:id', authenticateToken, (req, res) => {
-  const { id } = req.params;
-  const { userId, description, amount, date } = req.body;
-
-  if (parseInt(userId) !== req.user.userId) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-
-  const updateData = { description, amount, date };
-
-  db.query('UPDATE expenses SET ? WHERE id = ? AND userId = ?', [updateData, id, userId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Expense not found' });
-    }
-
-    res.status(200).json({ message: 'Expense updated successfully' });
-  });
-});
-
-// Delete an existing expense
-app.delete('/api/expenses/:id', authenticateToken, (req, res) => {
-  const { id } = req.params;
-  const { userId } = req.body;
-
-  if (parseInt(userId) !== req.user.userId) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-
-  db.query('DELETE FROM expenses WHERE id = ? AND userId = ?', [id, userId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Expense not found' });
-    }
-
-    res.status(204).send();
-  });
-});
-
-// Calculate total expense for a user
-app.get('/api/expense', authenticateToken, (req, res) => {
-  const userId = req.user.userId;
-
-  db.query('SELECT SUM(amount) as totalExpense FROM expenses WHERE userId = ?', [userId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error', error: err });
-    }
-
-    res.status(200).json(result[0]);
-  });
-});
-
 // Basic error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Unhandled error:', err.stack);
   res.status(500).send('Something went wrong!');
 });
 
