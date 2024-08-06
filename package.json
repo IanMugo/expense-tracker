@@ -5,7 +5,7 @@
   "main": "scripts.js",
   "scripts": {
     "test": "mocha",
-     "start": "node index.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +18,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.10.3",
+    "nodemon": "^3.1.4",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
