@@ -18,14 +18,52 @@ const db = mysql2.createConnection({
   database: process.env.DB_NAME || 'yourdatabase'
 });
 
-// Connect to MySQL
+// Connect to MySQL and create tables if they don't exist
 db.connect((err) => {
   if (err) {
     console.error('Error connecting to MySQL:', err.stack);
     return;
   }
   console.log('Connected to MySQL as id', db.threadId);
+
+  // Create tables if they do not exist
+  const createUsersTable = `
+    CREATE TABLE IF NOT EXISTS users (
+      email VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE,
+      username VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL
+    );
+  `;
+
+  const createExpensesTable = `
+    CREATE TABLE IF NOT EXISTS expenses (
+      id VARCHAR(36) PRIMARY KEY NOT NULL, /* Add this line */
+      expense_name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      amount DECIMAL(10, 2) NOT NULL,
+      date DATE NOT NULL,
+      category VARCHAR(255) NOT NULL,
+      FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
+    );
+  `;
+
+  db.query(createUsersTable, (err) => {
+    if (err) {
+      console.error('Error creating users table:', err.message);
+      return;
+    }
+    console.log('Users table created or already exists');
+  });
+
+  db.query(createExpensesTable, (err) => {
+    if (err) {
+      console.error('Error creating expenses table:', err.message);
+      return;
+    }
+    console.log('Expenses table created or already exists');
+  });
 });
+
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -72,15 +110,15 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid username or password' });
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.email }, JWT_SECRET, { expiresIn: '1h' }); // Updated to use user.email
     res.status(200).json({ message: 'Login successful', token });
   });
 });
 
 // Registration route
 app.post('/api/auth/register', [
-  check('email').isEmail().withMessage('Please enter a valid email'),
   check('username').isAlphanumeric().withMessage('Username must be alphanumeric'),
+  check('email').isEmail().withMessage('Please enter a valid email'),
   check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   check('email').custom(async (value) => {
     return new Promise((resolve, reject) => {
@@ -116,22 +154,21 @@ app.post('/api/auth/register', [
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { email, username, password, full_name } = req.body;
+  const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = {
-    email,
     username,
-    password: hashedPassword,
-    full_name
+    email,
+    password: hashedPassword
   };
 
-  User.createUser(newUser, (error, results) => {
-    if (error) {
-      console.error('Error inserting user:', error.message);
-      return res.status(500).json({ error: error.message });
+  db.query('INSERT INTO users SET ?', newUser, (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ message: 'Database error', error: err });
     }
-    res.status(201).json({ message: 'User registered successfully', id: results.insertId });
+    res.status(201).json({ message: 'User registered successfully' });
   });
 });
 
@@ -163,8 +200,8 @@ app.post('/api/expenses', authenticateToken, (req, res) => {
   }
 
   const newExpense = {
-    id: uuidv4(),
-    userId: req.user.userId,
+    id: uuidv4(), // Make sure the id is added here
+    email: req.user.userId,
     expense_name,
     amount,
     date,
@@ -186,7 +223,7 @@ app.put('/api/expenses/:id', authenticateToken, (req, res) => {
 
   const updateData = { expense_name, amount, date, category };
 
-  db.query('UPDATE expenses SET ? WHERE id = ? AND userId = ?', [updateData, id, req.user.userId], (err, result) => {
+  db.query('UPDATE expenses SET ? WHERE id = ? AND email = ?', [updateData, id, req.user.userId], (err, result) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ message: 'Database error', error: err });
@@ -201,7 +238,7 @@ app.put('/api/expenses/:id', authenticateToken, (req, res) => {
 app.delete('/api/expenses/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
 
-  db.query('DELETE FROM expenses WHERE id = ? AND userId = ?', [id, req.user.userId], (err, result) => {
+  db.query('DELETE FROM expenses WHERE id = ? AND email = ?', [id, req.user.userId], (err, result) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ message: 'Database error', error: err });

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const baseUrl = 'http://localhost:3000';
     let token = localStorage.getItem('token') || '';
-  
+
     const handleResponse = async (response) => {
         if (!response.ok) {
             const contentType = response.headers.get('content-type');
@@ -15,26 +15,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return response.json();
     };
-  
+
     const showMessage = (message) => alert(message);
-  
+
     const registerForm = document.getElementById('registerForm');
     const loginForm = document.getElementById('loginForm');
     const expenseForm = document.getElementById('expenseForm');
     const editExpenseForm = document.getElementById('editExpenseForm');
     const expenseList = document.getElementById('expenseList');
     const totalExpense = document.getElementById('totalExpense');
-  
+
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const { username, email, password, confirmpassword } = e.target;
-  
+            const username = e.target.elements['username'].value;
+            const email = e.target.elements['email'].value;
+            const password = e.target.elements['password'].value;
+            const confirmpassword = e.target.elements['confirmpassword'].value;
+
+            console.log({ username, email, password, confirmpassword }); // Corrected logging
+
             try {
                 const response = await fetch(`${baseUrl}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username.value, email: email.value, password: password.value, confirmpassword: confirmpassword.value })
+                    body: JSON.stringify({ username, email, password, confirmpassword })
                 });
                 await handleResponse(response);
                 showMessage('Registration successful!');
@@ -44,17 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-  
+
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const { email, password } = e.target;
-  
+            const username = e.target.elements['username'].value; // Changed from email to username
+            const password = e.target.elements['password'].value;
+
+            console.log({ username, password }); // Corrected logging
+
             try {
                 const response = await fetch(`${baseUrl}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email.value, password: password.value })
+                    body: JSON.stringify({ username, password }) // Sending username instead of email
                 });
                 const data = await handleResponse(response);
                 token = data.token;
@@ -66,12 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-  
+});
+
     if (expenseForm) {
         expenseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const { expense_name, amount, date, category } = e.target;
-  
+            const expense_name = e.target.elements['expense_name'];
+            const amount = e.target.elements['amount'];
+            const date = e.target.elements['date'];
+            const category = e.target.elements['category'];
+
+            console.log({ expense_name, amount, date, category }); // Debugging line
+
             try {
                 const response = await fetch(`${baseUrl}/api/expenses`, {
                     method: 'POST',
@@ -89,31 +103,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-  
+
     if (editExpenseForm) {
         const expenseId = new URLSearchParams(window.location.search).get('id');
-  
+
         const fetchExpense = async () => {
             try {
                 const response = await fetch(`${baseUrl}/api/expenses/${expenseId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const expense = await handleResponse(response);
-                editExpenseForm.expense_name.value = expense.expense_name;
-                editExpenseForm.amount.value = expense.amount;
-                editExpenseForm.date.value = new Date(expense.date).toISOString().substring(0, 10);
-                editExpenseForm.category.value = expense.category;
+                editExpenseForm.elements['expense_name'].value = expense.expense_name;
+                editExpenseForm.elements['amount'].value = expense.amount;
+                editExpenseForm.elements['date'].value = new Date(expense.date).toISOString().substring(0, 10);
+                editExpenseForm.elements['category'].value = expense.category;
             } catch (err) {
                 showMessage(err.message);
             }
         };
-  
+
         fetchExpense();
-  
+
         editExpenseForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const { expense_name, amount, date, category } = e.target;
-  
+            const expense_name = e.target.elements['expense_name'];
+            const amount = e.target.elements['amount'];
+            const date = e.target.elements['date'];
+            const category = e.target.elements['category'];
+
+            console.log({ expense_name, amount, date, category }); // Debugging line
+
             try {
                 const response = await fetch(`${baseUrl}/api/expenses/${expenseId}`, {
                     method: 'PUT',
@@ -131,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-  
+
     if (expenseList) {
         const loadExpenses = async () => {
             try {
@@ -140,16 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const expenses = await handleResponse(response);
                 expenseList.innerHTML = '';
-  
+
                 expenses.forEach(expense => {
                     const li = document.createElement('li');
                     li.textContent = `${expense.expense_name} - $${expense.amount} on ${new Date(expense.date).toLocaleDateString()}`;
-  
+
                     const editBtn = document.createElement('button');
                     editBtn.textContent = 'Edit';
                     editBtn.onclick = () => window.location.href = `edit_expense.html?id=${expense.id}`;
                     li.appendChild(editBtn);
-  
+
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = 'Delete';
                     deleteBtn.onclick = async () => {
@@ -168,10 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     };
                     li.appendChild(deleteBtn);
-  
+
                     expenseList.appendChild(li);
                 });
-  
+
                 const totalResponse = await fetch(`${baseUrl}/api/expense`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -181,8 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage(err.message);
             }
         };
-  
+
         loadExpenses();
-    }
-  });
-   
+    };
